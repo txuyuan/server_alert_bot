@@ -5,6 +5,7 @@ Handles authorization and forwards alerts to authorized users
 """
 
 import os
+import subprocess
 import logging
 import asyncio
 from pathlib import Path
@@ -103,8 +104,12 @@ curl -X POST http://{self.config['alert_server_host']}:{self.config['alert_serve
             return
         status_text = f"""
 📊 *Bot Status*
-- Authorized users: {len(self.authorized_users)}
-- Alert server: {'Running' if self.check_alert_server() else 'Not running'}
+Authorized users: {len(self.authorized_users)}
+Alert server: {'Running' if self.check_alert_server() else 'Not running'}
+
+📊 *Server Status*
+Uptime: {subprocess.run(["uptime"], capture_output=True).stdout.decode('utf-8')} 
+
         """
         await update.message.reply_text(status_text, parse_mode='Markdown')
 
