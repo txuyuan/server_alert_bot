@@ -127,7 +127,6 @@ curl -X POST http://{self.config['alert_server_host']}:{self.config['alert_serve
 ⚠️ *Server Alert*
 *Program:* [{program}]
 *Time:* {timestamp}
-*Message:*
 
 {message}
         """
