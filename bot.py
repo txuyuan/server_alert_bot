@@ -126,7 +126,7 @@ Uptime: {subprocess.run(["uptime"], capture_output=True).stdout.decode('utf-8')}
         except:
             return False
 
-    async def _broadcast_alert_async(self, program: str, message: str, timestamp: str):
+    async def _broadcast_alert_async(self, program: str, message: str, timestamp: str, ignore_errors: bool = False):
         """Asynchronous method that actually sends the messages."""
         alert_message = f"""
 ⚠️ *Server Alert*
@@ -138,6 +138,7 @@ Uptime: {subprocess.run(["uptime"], capture_output=True).stdout.decode('utf-8')}
 ```
         """
         success_count = 0
+        failed_users = []
         for user_id in self.authorized_users:
             try:
                 await self.application.bot.send_message(
@@ -149,6 +150,21 @@ Uptime: {subprocess.run(["uptime"], capture_output=True).stdout.decode('utf-8')}
                 await asyncio.sleep(0.05)  # rate limit
             except Exception as e:
                 logger.error(f"Failed to send alert to user {user_id}: {e}")
+                failed_users += [user_id]
+
+        if failed_users and not ignore_errors:
+            follow_up_message = f"""
+Some users failed to receive the previous alert.
+Delivered to: {success_count}/{len(self.authorized_users)} users
+Failed users: {', '.join(failed_users)}
+            """
+            await self._broadcast_alert_async(
+                program="system",
+                message=follow_up_message,
+                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            ignore_errors=True
+            )
+
         logger.info(f"Alert broadcast to {success_count}/{len(self.authorized_users)} users")
 
     def send_alert(self, program: str, message: str):
